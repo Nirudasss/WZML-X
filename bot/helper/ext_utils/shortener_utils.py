@@ -1,14 +1,14 @@
 import requests
 from base64 import b64encode
-from cloudscraper import create_scraper
-from random import choice, random, randrange
-from time import sleep
+from random import choice, random
+from asyncio import sleep as asleep
 from urllib.parse import quote
+
+from cloudscraper import create_scraper
 from urllib3 import disable_warnings
 
-from bot import config_dict, LOGGER, SHORTENERES, SHORTENER_APIS
-from bot.helper.ext_utils.bot_utils import is_premium_user
-
+from ... import LOGGER, shortener_dict
+from ...core.config_manager import Config
 
 def get_encrypted_url(link, site='', api=''):
     params = {'url': link}
@@ -24,46 +24,77 @@ def get_encrypted_url(link, site='', api=''):
     if res.status_code == 200:
         return res.json().get('encrypted_url', link)
 
-def short_url(longurl, user_id=None, attempt=0):
-    def shorte_st():
-        headers = {'public-api-token': _shortener_api}
-        data = {'urlToShorten': quote(longurl)}
-        return cget('PUT', 'https://api.shorte.st/v1/data/url', headers=headers, data=data).json()['shortenedUrl']
-
-    def linkvertise():
-        url = quote(b64encode(longurl.encode('utf-8')))
-        linkvertise_urls = [f'https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}',
-                            f'https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}',
-                            f'https://direct-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}',
-                            f'https://file-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}']
-        return choice(linkvertise_urls)
-
-    def default_shortener():
-        res = cget('GET', f'https://{_shortener}/api?api={_shortener_api}&url={quote(longurl)}').json()
-        return res.get('shortenedUrl', longurl)
-
-    shortener_functions = {'shorte.st': shorte_st, 'linkvertise': linkvertise}
-
-    if (((not SHORTENERES and not SHORTENER_APIS) or (config_dict['PREMIUM_MODE'] and user_id and is_premium_user(user_id)) or
-         user_id == config_dict['OWNER_ID']) and not config_dict['FORCE_SHORTEN']):
+async def short_url(longurl, attempt=0):
+    if not shortener_dict and not Config.PROTECTED_API:
+        return longurl
+    if attempt >= 4:
         return longurl
 
-    for _ in range(4 - attempt):
-        i = 0 if len(SHORTENERES) == 1 else randrange(len(SHORTENERES))
-        _shortener = SHORTENERES[i].strip()
-        _shortener_api = SHORTENER_APIS[i].strip()
-        if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
+    cget = create_scraper().request
+    disable_warning 
+    try:
+        if Config.PROTECTED_API:
+            res = cget("GET", Config.PROTECTED_API, params={"url": longurl}).json()
+            if res.get("status") == "success":
+                return res["url"]
+            raise Exception(f"Protected API Error: {res}")
+
+        _shortener, _shortener_api = choice(list(shortener_dict.items()))
+        if "shorte.st" in _shortener:
+            headers = {"public-api-token": _shortener_api}
+            data = {"urlToShorten": quote(longurl)}
+            return cget(
+                "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
+            ).json()["shortenedUrl"]
+        elif "linkvertise" in _shortener:
+            url = quote(b64encode(longurl.encode("utf-8")))
+            linkvertise = [
+                f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+                f"https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+                f"https://direct-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+                f"https://file-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+            ]
+            return choice(linkvertise)
+        elif "bitly.com" in _shortener:
+            headers = {"Authorization": f"Bearer {_shortener_api}"}
+            return cget(
+                "POST",
+                "https://api-ssl.bit.ly/v4/shorten",
+                json={"long_url": longurl},
+                headers=headers,
+            ).json()["link"]
+        elif "ouo.io" in _shortener:
+            return cget(
+                "GET", f"http://ouo.io/api/{_shortener_api}?s={longurl}", verify=False
+            ).text
+        elif "cutt.ly" in _shortener:
+            return cget(
+                "GET",
+                f"http://cutt.ly/api/api.php?key={_shortener_api}&short={longurl}",
+            ).json()["url"]["shortLink"]
+        else:
+            res = cget(
+                "GET",
+                f"https://{_shortener}/api?api={_shortener_api}&url={quote(longurl)}",
+            ).json()
+            shorted = res["shortenedUrl"]
+            if not shorted:
+                shrtco_res = cget(
+                    "GET", f"https://api.shrtco.de/v2/shorten?url={quote(longurl)}"
+                ).json()
+                shrtco_link = shrtco_res["result"]["full_short_link"]
+                res = cget(
+                    "GET",
+                    f"https://{_shortener}/api?api={_shortener_api}&url={shrtco_link}",
+                ).json()
+                shorted = res["shortenedUrl"]
+            if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
                 return encrypted_url_
-            
-        cget = create_scraper().request
-        disable_warnings()
-        try:
-            for key in shortener_functions:
-                if key in _shortener:
-                    return shortener_functions[key]()
-            return default_shortener()
-        except Exception as e:
-            LOGGER.error(e)
-            sleep(1)
-    return longurl
-        
+            if not shorted:
+                shorted = longurl
+            return shorted
+    except Exception as e:
+        LOGGER.error(e)
+        await asleep(0.8)
+        attempt += 1
+        return await short_url(longurl, attempt)
