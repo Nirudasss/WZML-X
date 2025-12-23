@@ -10,7 +10,7 @@ from urllib3 import disable_warnings
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
 
-def get_encrypted_url(link, site='', api=''):
+async def get_encrypted_url(link, site='', api=''):
     params = {'url': link}
     if site and api:
         params['site'] = site
@@ -47,6 +47,8 @@ async def short_url(longurl, attempt=0):
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
         elif "linkvertise" in _shortener:
+            if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
+                return encrypted_url_
             url = quote(b64encode(longurl.encode("utf-8")))
             linkvertise = [
                 f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
@@ -88,8 +90,6 @@ async def short_url(longurl, attempt=0):
                     f"https://{_shortener}/api?api={_shortener_api}&url={shrtco_link}",
                 ).json()
                 shorted = res["shortenedUrl"]
-            if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
-                return encrypted_url_
             if not shorted:
                 shorted = longurl
             return shorted
