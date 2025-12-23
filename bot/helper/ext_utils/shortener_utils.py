@@ -1,33 +1,31 @@
+import aiohttp
 import asyncio
-import requests
 from base64 import b64encode
 from random import choice, random
-from asyncio import sleep as asleep
 from urllib.parse import quote
-
 from cloudscraper import create_scraper
 from urllib3 import disable_warnings
-
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
 
-# 1️⃣ Synchronous GKBotz encryption
-def get_encrypted_url(link):
+async def get_encrypted_url(link):
     try:
-        res = requests.get(
-            "https://short.gkbotz.qzz.io/api/encrypt",
-            params={"url": link},
-            timeout=10
-        )
-        if res.status_code == 200:
-            encrypted = res.json().get("encrypted_url")
-            if encrypted:
-                return encrypted
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://short.gkbotz.qzz.io/api/encrypt",
+                params={"url": link},
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=10
+            ) as res:
+                if res.status == 200:
+                    data = await res.json()
+                    token = data.get("encrypted_url")
+                    if token:
+                        return token
     except Exception as e:
-        LOGGER.error(f"Encryption API error: {e}")
+        LOGGER.error(f"GKBotz encryption error: {e}")
     return None
-
-# 2️⃣ Async short_url
+    
 async def short_url(longurl, attempt=0):
     if not shortener_dict and not Config.PROTECTED_API:
         return longurl
@@ -38,17 +36,17 @@ async def short_url(longurl, attempt=0):
     disable_warnings()
 
     try:
-        # STEP A: Try Protected API first
+        # STEP A: Protected API
         if Config.PROTECTED_API:
             res = cget("GET", Config.PROTECTED_API, params={"url": longurl}).json()
             if res.get("status") == "success":
                 return res["url"]
             raise Exception(f"Protected API Error: {res}")
 
-        # STEP B: Try GKBotz encryption first
-        encrypted_url = await asyncio.to_thread(get_encrypted_url, longurl)
+        # STEP B: GKBotz encryption
+        encrypted_url = await get_encrypted_url(longurl)
         if encrypted_url:
-            return encrypted_url  # RETURN immediately if encrypted link exists
+            return encrypted_url
 
         # STEP C: Fallback to other shorteners
         _shortener, _shortener_api = choice(list(shortener_dict.items()))
@@ -70,12 +68,11 @@ async def short_url(longurl, attempt=0):
             ]
             return choice(linkvertise)
 
-        # Add other shorteners if needed
         else:
             return longurl
 
     except Exception as e:
         LOGGER.error(e)
-        await asleep(0.8)
+        await asyncio.sleep(0.8)
         attempt += 1
         return await short_url(longurl, attempt)
