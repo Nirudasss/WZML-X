@@ -1,3 +1,5 @@
+import asyncio
+import requests
 from base64 import b64encode
 from random import choice, random
 from asyncio import sleep as asleep
@@ -8,6 +10,28 @@ from urllib3 import disable_warnings
 
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
+
+def get_encrypted_url(link, site='', api=''):
+    params = {'url': link}
+
+    if site and api:
+        params['site'] = site
+        params['api'] = api
+    elif site and not api:
+        raise ValueError("api is missing")
+    elif api and not site:
+        raise ValueError("site is missing")
+
+    res = requests.get(
+        "https://short.gkbotz.qzz.io/api/encrypt",
+        params=params,
+        timeout=10
+    )
+
+    if res.status_code == 200:
+        return res.json().get("encrypted_url", link)
+
+    return link
 
 async def short_url(longurl, attempt=0):
     if not shortener_dict and not Config.PROTECTED_API:
@@ -32,6 +56,14 @@ async def short_url(longurl, attempt=0):
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
         elif "linkvertise" in _shortener:
+            # run blocking encrypt API in background thread
+            longurl = await asyncio.to_thread(
+                get_encrypted_url,
+                longurl,
+                _shortener,
+                _shortener_api
+            )
+
             url = quote(b64encode(longurl.encode("utf-8")))
             linkvertise = [
                 f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
