@@ -56,12 +56,12 @@ async def short_url(longurl, attempt=0):
 
     url = quote(b64encode(longurl.encode("utf-8")))
     linkvertise = [
-                f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
-                f"https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
-                f"https://direct-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
-                f"https://file-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
-            ]
-            return choice(linkvertise)
+        f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+        f"https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+        f"https://direct-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+        f"https://file-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
+    ]
+    return choice(linkvertise)
         elif "bitly.com" in _shortener:
             headers = {"Authorization": f"Bearer {_shortener_api}"}
             return cget(
