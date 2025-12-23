@@ -10,13 +10,7 @@ from urllib3 import disable_warnings
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
 
-async def short_url(longurl, attempt=0):
-    if not shortener_dict and not Config.PROTECTED_API:
-        return longurl
-    if attempt >= 4:
-        return longurl
-
- def get_encrypted_url(link, site='', api=''):
+def get_encrypted_url(link, site='', api=''):
     params = {'url': link}
     if site and api:
         params['site'] = site
@@ -29,7 +23,13 @@ async def short_url(longurl, attempt=0):
     res = requests.get("https://short.gkbotz.qzz.io/api/encrypt", params=params)
     if res.status_code == 200:
         return res.json().get('encrypted_url', link)
-        
+
+async def short_url(longurl, attempt=0):
+    if not shortener_dict and not Config.PROTECTED_API:
+        return longurl
+    if attempt >= 4:
+        return longurl
+
     cget = create_scraper().request
     disable_warning 
     try:
