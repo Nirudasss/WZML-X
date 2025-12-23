@@ -10,7 +10,13 @@ from urllib3 import disable_warnings
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
 
-def get_encrypted_url(link, site='', api=''):
+async def short_url(longurl, attempt=0):
+    if not shortener_dict and not Config.PROTECTED_API:
+        return longurl
+    if attempt >= 4:
+        return longurl
+
+ def get_encrypted_url(link, site='', api=''):
     params = {'url': link}
     if site and api:
         params['site'] = site
@@ -23,19 +29,10 @@ def get_encrypted_url(link, site='', api=''):
     res = requests.get("https://short.gkbotz.qzz.io/api/encrypt", params=params)
     if res.status_code == 200:
         return res.json().get('encrypted_url', link)
-
-
-async def short_url(longurl, attempt=0):
-    if not shortener_dict and not Config.PROTECTED_API:
-        return longurl
-    if attempt >= 4:
-        return longurl
-
+        
     cget = create_scraper().request
     disable_warning 
     try:
-        if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
-                return encrypted_url_
         if Config.PROTECTED_API:
             res = cget("GET", Config.PROTECTED_API, params={"url": longurl}).json()
             if res.get("status") == "success":
@@ -49,6 +46,8 @@ async def short_url(longurl, attempt=0):
             return cget(
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
+        if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
+                return encrypted_url_
         elif "linkvertise" in _shortener:
             url = quote(b64encode(longurl.encode("utf-8")))
             linkvertise = [
