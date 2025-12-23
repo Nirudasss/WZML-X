@@ -1,4 +1,4 @@
-import requests
+import asyncio
 from base64 import b64encode
 from random import choice, random
 from asyncio import sleep as asleep
@@ -10,7 +10,7 @@ from urllib3 import disable_warnings
 from ... import LOGGER, shortener_dict
 from ...core.config_manager import Config
 
-async def get_encrypted_url(link, site='', api=''):
+def get_encrypted_url(link, site='', api=''):
     params = {'url': link}
     if site and api:
         params['site'] = site
@@ -46,10 +46,13 @@ async def short_url(longurl, attempt=0):
             return cget(
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
-        elif "linkvertise" in _shortener:
-            if True and (encrypted_url_ := await get_encrypted_url(longurl, _shortener, _shortener_api)):
-                return encrypted_url_
-            url = quote(b64encode(longurl.encode("utf-8")))
+        elif "linkvertise" in _shortener: longurl = await asyncio.to_thread(
+        get_encrypted_url,
+        longurl,
+        _shortener,
+        _shortener_api
+        ) 
+             url = quote(b64encode(longurl.encode("utf-8")))
             linkvertise = [
                 f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
                 f"https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
