@@ -30,12 +30,12 @@ async def short_url(longurl, attempt=0):
         return longurl
     if attempt >= 4:
         return longurl
-        if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
-                return encrypted_url_
 
     cget = create_scraper().request
     disable_warning 
     try:
+        if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
+                return encrypted_url_
         if Config.PROTECTED_API:
             res = cget("GET", Config.PROTECTED_API, params={"url": longurl}).json()
             if res.get("status") == "success":
