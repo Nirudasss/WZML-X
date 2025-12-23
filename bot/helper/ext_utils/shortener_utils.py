@@ -46,14 +46,16 @@ async def short_url(longurl, attempt=0):
             return cget(
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
-        elif "linkvertise" in _shortener: longurl = await asyncio.to_thread(
-        get_encrypted_url,
-        longurl,
-        _shortener,
-        _shortener_api
-        ) 
-             url = quote(b64encode(longurl.encode("utf-8")))
-            linkvertise = [
+        elif "linkvertise" in _shortener:
+    encrypted_url = await get_encrypted_url(
+        longurl, _shortener, _shortener_api
+    )
+
+    if encrypted_url:
+        longurl = encrypted_url
+
+    url = quote(b64encode(longurl.encode("utf-8")))
+    linkvertise = [
                 f"https://link-to.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
                 f"https://up-to-down.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
                 f"https://direct-link.net/{_shortener_api}/{random() * 1000}/dynamic?r={url}",
