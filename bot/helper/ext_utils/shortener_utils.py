@@ -47,7 +47,7 @@ async def short_url(longurl, attempt=0):
                 "PUT", "https://api.shorte.st/v1/data/url", headers=headers, data=data
             ).json()["shortenedUrl"]
         elif "linkvertise" in _shortener:
-            if True and (encrypted_url_ :=  get_encrypted_url(longurl, _shortener, _shortener_api)):
+            if True and (encrypted_url_ := await get_encrypted_url(longurl, _shortener, _shortener_api)):
                 return encrypted_url_
             url = quote(b64encode(longurl.encode("utf-8")))
             linkvertise = [
