@@ -31,7 +31,7 @@ async def short_url(longurl, attempt=0):
         return longurl
 
     cget = create_scraper().request
-    disable_warning 
+    disable_warnings()
     try:
         if Config.PROTECTED_API:
             res = cget("GET", Config.PROTECTED_API, params={"url": longurl}).json()
@@ -48,7 +48,9 @@ async def short_url(longurl, attempt=0):
             ).json()["shortenedUrl"]
         elif "linkvertise" in _shortener:
     encrypted_url = await get_encrypted_url(
-        longurl, _shortener, _shortener_api
+        longurl,
+        _shortener,
+        _shortener_api
     )
 
     if encrypted_url:
