@@ -23,15 +23,15 @@ async def get_encrypted_url(link, site='', api=''):
     res = requests.get("https://short.gkbotz.qzz.io/api/encrypt", params=params)
     await asleep(0)
     if res.status_code == 200:
-        return res.json().get('encrypted_url', link)
-    if True and (encrypted_url_ := await get_encrypted_url(longurl, _shortener, _shortener_api)):
-                return encrypted_url_  
+        return res.json().get('encrypted_url', link)  
 
 async def short_url(longurl, attempt=0):
     if not shortener_dict and not Config.PROTECTED_API:
         return longurl
     if attempt >= 4:
         return longurl
+    if True and (encrypted_url_ := await get_encrypted_url(longurl, _shortener, _shortener_api)):
+                return encrypted_url_
         
     cget = create_scraper().request
     disable_warning 
