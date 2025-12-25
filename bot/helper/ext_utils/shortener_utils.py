@@ -1,4 +1,3 @@
-import requests
 from base64 import b64encode
 from random import choice, random
 from asyncio import sleep as asleep
