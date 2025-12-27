@@ -9,7 +9,7 @@ from urllib3 import disable_warnings
 from ... import LOGGER, shortener_dict
 
 
-WORKER_URL = "https://tellylinks.tellycloudapi.workers.dev/shorten"
+WORKER_URL = "https://antibypass.tellycloudapi.workers.dev/docs"
 
 
 async def short_url(longurl, attempt=0):
