@@ -29,13 +29,13 @@ async def short_url(longurl, attempt=0):
                 # "alias": "mylink",
                 # "expiry": 7,
                 # "password": "auto",
-                # "apitoken": "your_token_here",
-                # "apiurl": "https://arolinks.com/api",
-                # "apidomain": "arolinks.com",
+                # "apitoken": "1eb2c8965c222bcb19d9069be47997aa1ac65b7f",
+                # "apiurl": "https://softurl.in/api",
+                # "apidomain": "softurl.in",
                 # "channels": [
                 #     {
-                #         "name": "TellY Mirror",
-                #         "url": "https://t.me/tellY_mirror"
+                #         "name": "Elite Botz",
+                #         "url": "https://t.me/Radh_Rani_Backup"
                 #     }
                 # ]
             }
