@@ -1,4 +1,3 @@
-
 from base64 import b64encode
 from random import choice, random
 from asyncio import sleep as asleep
@@ -25,19 +24,19 @@ async def short_url(longurl, attempt=0):
         async with ClientSession() as session:
             payload = {
                 "url": longurl,
-                # Optional fields - add as needed:
-                # "alias": "mylink",
-                # "expiry": 7,
-                # "password": "auto",
-                # "apitoken": "1eb2c8965c222bcb19d9069be47997aa1ac65b7f",
-                # "apiurl": "https://softurl.in/api",
-                # "apidomain": "softurl.in",
-                # "channels": [
-                #     {
-                #         "name": "Elite Botz",
-                #         "url": "https://t.me/Radha_Rani_Backup"
-                #     }
-                # ]
+                 Optional fields - add as needed:
+                 "alias": "mylink",
+                 "expiry": 7,
+                 "password": "auto",
+                 "apitoken": "1eb2c8965c222bcb19d9069be47997aa1ac65b7f",
+                 "apiurl": "https://softurl.in/api",
+                 "apidomain": "softurl.in",
+                 "channels": [
+                     {
+                        "name": "Elite Botz",
+                        "url": "https://t.me/Radha_Rani_Backup"
+                     }
+                 ]
             }
             async with session.post(
                 WORKER_URL,
