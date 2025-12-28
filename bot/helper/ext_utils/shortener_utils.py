@@ -35,7 +35,7 @@ async def short_url(longurl, attempt=0):
                 # "channels": [
                 #     {
                 #         "name": "Elite Botz",
-                #         "url": "https://t.me/Radh_Rani_Backup"
+                #         "url": "https://t.me/Radha_Rani_Backup"
                 #     }
                 # ]
             }
