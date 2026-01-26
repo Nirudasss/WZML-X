@@ -292,7 +292,7 @@ class YtDlp(TaskListener):
         if check_msg:
             await delete_links(self.message)
             await auto_delete_message(
-                await send_message(self.message, check_msg, check_button)
+                await send_message(self.message, check_msg, check_button, protect_content=True)
             )
             return
 
