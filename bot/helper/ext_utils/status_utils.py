@@ -153,16 +153,33 @@ def get_progress_bar_string(pct):
     empty = 12 - filled
     return f"[{'⬢' * filled}{'⬡' * empty}]"
 
+def time_to_seconds(time_str):
+    """
+    Convert time string like:
+    1d2h3m4s -> seconds
+    """
+    if not time_str:
+        return 0
 
-# =========================
-# MAIN STATUS FUNCTION
-# =========================
+    units = {
+        "d": 86400,
+        "h": 3600,
+        "m": 60,
+        "s": 1,
+    }
+
+    total = 0
+    for value, unit in findall(r"(\d+)([dhms])", time_str)
+        total += int(value) * units.get(unit, 0)
+
+    return total
+
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
     from ..telegram_helper.bot_commands import BotCommands
 
     msg = ""
     buttons = ButtonMaker()
-
+    
     async with task_dict_lock:
         tasks = await get_specific_tasks(status, sid if is_user else None)
 
