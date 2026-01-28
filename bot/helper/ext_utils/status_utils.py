@@ -168,19 +168,6 @@ def get_progress_bar_string(pct):
     empty = 12 - filled
     return f"[{'⬢' * filled}{'⬡' * empty}]"
 
-# =========================
-# TASK MESSAGE BUILDER (OPTIONAL)
-# =========================
-async def get_readable_message(sid, is_user, page_no=1, status="All"):
-    """
-    Generate readable Telegram message with all task info and stats
-    """
-    from ..telegram_helper.button_build import ButtonMaker
-    from ..telegram_helper.bot_commands import BotCommands
-
-    msg = ""
-    buttons = ButtonMaker()
-
 def speed_string_to_bytes(speed_str):
     if not speed_str:
         return 0
@@ -195,7 +182,20 @@ def speed_string_to_bytes(speed_str):
             return value * 1024 ** 3
     except:
         return 0
-    return 0    
+    return 0
+
+# =========================
+# TASK MESSAGE BUILDER (OPTIONAL)
+# =========================
+async def get_readable_message(sid, is_user, page_no=1, status="All"):
+    """
+    Generate readable Telegram message with all task info and stats
+    """
+    from ..telegram_helper.button_build import ButtonMaker
+    from ..telegram_helper.bot_commands import BotCommands
+
+    msg = ""
+    buttons = ButtonMaker()
 
     async with task_dict_lock:
         tasks = await get_specific_tasks(status, sid if is_user else None)
