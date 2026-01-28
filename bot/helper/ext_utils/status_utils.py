@@ -3,6 +3,7 @@ from html import escape
 from re import findall
 from time import time
 from psutil import cpu_percent, disk_usage, virtual_memory
+from ...ext_utils.status_utils import speed_string_to_bytes
 
 from ... import DOWNLOAD_DIR, bot_start_time, task_dict, task_dict_lock
 from ...core.config_manager import Config
