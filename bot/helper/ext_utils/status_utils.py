@@ -1,40 +1,34 @@
+# bot/helper/ext_utils/status_utils.py
+
 from asyncio import gather, iscoroutinefunction
 from html import escape
 from re import findall
 from time import time
-
 from psutil import cpu_percent, disk_usage, virtual_memory
 
-from ... import (
-    DOWNLOAD_DIR,
-    bot_start_time,
-    task_dict,
-    task_dict_lock,
-)
+from ... import DOWNLOAD_DIR, bot_start_time, task_dict, task_dict_lock
 from ...core.config_manager import Config
-from ..telegram_helper.button_build import ButtonMaker
-
 
 # =========================
-# LOCKED POWERED HEADER
+# POWERED HEADER
 # =========================
 POWERED_BY_HEADER = (
     "<b>🚀 <a href='https://t.me/Radha_Rani_Backup'>POWERED BY ELITEBOTZ</a></b>\n"
     "<b>━━━━━━━━━━━━━━━━━━━━</b>\n\n"
 )
 
-
 def apply_locked_header(text: str) -> str:
     if text.startswith(POWERED_BY_HEADER):
         return text
     return POWERED_BY_HEADER + text
 
-
+# =========================
+# FILE SIZE UNITS
+# =========================
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
 
-
 # =========================
-# REQUIRED BY cancel_task.py
+# TASK HELPERS
 # =========================
 def get_task_by_gid(gid):
     for task in task_dict.values():
@@ -44,6 +38,33 @@ def get_task_by_gid(gid):
 
 def get_all_tasks():
     return list(task_dict.values())
+
+async def get_specific_tasks(status, user_id):
+    """
+    Filter tasks by status and user_id
+    """
+    tasks = list(task_dict.values())
+    if user_id:
+        tasks = [t for t in tasks if t.listener.user_id == user_id]
+
+    if status == "All":
+        return tasks
+
+    # Handle coroutine status functions
+    coro_tasks = [t for t in tasks if iscoroutinefunction(t.status)]
+    coro_status = await gather(*[t.status() for t in coro_tasks])
+
+    result = []
+    idx = 0
+    for task in tasks:
+        if task in coro_tasks:
+            st = coro_status[idx]
+            idx += 1
+        else:
+            st = task.status()
+        if st == status:
+            result.append(task)
+    return result
 
 # =========================
 # STATUS DEFINITIONS
@@ -66,7 +87,6 @@ class MirrorStatus:
     STATUS_YT = "YouTube"
     STATUS_METADATA = "Metadata"
 
-
 STATUSES = {
     "ALL": "All",
     "DL": MirrorStatus.STATUS_DOWNLOAD,
@@ -85,34 +105,22 @@ STATUSES = {
     "CK": MirrorStatus.STATUS_CHECK,
 }
 
+# =========================
+# ENGINE STATUS
+# =========================
+class EngineStatus:
+    ARIA2 = "aria2"
+    FFMPEG = "ffmpeg"
+    PYROGRAM = "pyrogram"
+    TORRENT = "torrent"
+    YTDL = "youtube_dl"
+    METADATA = "metadata"
+
+    ALL_ENGINES = [ARIA2, FFMPEG, PYROGRAM, TORRENT, YTDL, METADATA]
 
 # =========================
-# HELPERS
+# HELPER FUNCTIONS
 # =========================
-async def get_specific_tasks(status, user_id):
-    tasks = list(task_dict.values())
-    if user_id:
-        tasks = [t for t in tasks if t.listener.user_id == user_id]
-
-    if status == "All":
-        return tasks
-
-    coro_tasks = [t for t in tasks if iscoroutinefunction(t.status)]
-    coro_status = await gather(*[t.status() for t in coro_tasks])
-
-    result = []
-    idx = 0
-    for task in tasks:
-        if task in coro_tasks:
-            st = coro_status[idx]
-            idx += 1
-        else:
-            st = task.status()
-        if st == status:
-            result.append(task)
-    return result
-
-
 def get_readable_file_size(size):
     if not size:
         return "0B"
@@ -122,7 +130,6 @@ def get_readable_file_size(size):
         size /= 1024
         i += 1
     return f"{size:.2f}{SIZE_UNITS[i]}"
-
 
 def get_readable_time(seconds):
     seconds = int(seconds)
@@ -140,11 +147,21 @@ def get_readable_time(seconds):
         out += f"{s}s"
     return out
 
-
 def get_raw_time(time_str):
     units = {"d": 86400, "h": 3600, "m": 60, "s": 1}
     return sum(int(v) * units[u] for v, u in findall(r"(\d+)([dhms])", time_str))
 
+def time_to_seconds(time_str):
+    """
+    Convert time string like 1d2h3m4s -> total seconds
+    """
+    if not time_str:
+        return 0
+    units = {"d": 86400, "h": 3600, "m": 60, "s": 1}
+    total = 0
+    for value, unit in findall(r"(\d+)([dhms])", time_str):
+        total += int(value) * units.get(unit, 0)
+    return total
 
 def get_progress_bar_string(pct):
     pct = float(str(pct).replace("%", ""))
@@ -153,33 +170,19 @@ def get_progress_bar_string(pct):
     empty = 12 - filled
     return f"[{'⬢' * filled}{'⬡' * empty}]"
 
-def time_to_seconds(time_str):
+# =========================
+# TASK MESSAGE BUILDER (OPTIONAL)
+# =========================
+async def get_readable_message(sid, is_user, page_no=1, status="All"):
     """
-    Convert time string like:
-    1d2h3m4s -> seconds
+    Generate readable Telegram message with all task info and stats
     """
-    if not time_str:
-        return 0
-
-    units = {
-        "d": 86400,
-        "h": 3600,
-        "m": 60,
-        "s": 1,
-    }
-
-    total = 0
-    for value, unit in findall(r"(\d+)([dhms])", time_str):
-        total += int(value) * units.get(unit, 0)
-
-    return total
-
-async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
+    from ..telegram_helper.button_build import ButtonMaker
     from ..telegram_helper.bot_commands import BotCommands
 
     msg = ""
     buttons = ButtonMaker()
-    
+
     async with task_dict_lock:
         tasks = await get_specific_tasks(status, sid if is_user else None)
 
@@ -213,6 +216,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
     if not msg:
         msg = "❌ <b>No Active Tasks</b>\n\n"
 
+    # Bot stats
     msg += (
         "🤖 <b><u>Bot Stats</u></b>\n"
         f"│ 🖥 <b>CPU</b>: {cpu_percent()}%\n"
@@ -222,7 +226,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
     )
 
     buttons.data_button("♻️ Refresh", f"status {sid} ref", position="header")
-
     if total > STATUS_LIMIT:
         buttons.data_button("<<", f"status {sid} pre", position="header")
         buttons.data_button(">>", f"status {sid} nex", position="header")
