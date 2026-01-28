@@ -7,9 +7,7 @@ from psutil import cpu_percent, disk_usage, virtual_memory
 
 from ... import (
     DOWNLOAD_DIR,
-    bot_cache,
     bot_start_time,
-    status_dict,
     task_dict,
     task_dict_lock,
 )
@@ -33,6 +31,16 @@ def apply_locked_header(text: str) -> str:
 
 
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
+
+
+# =========================
+# REQUIRED BY cancel_task.py
+# =========================
+def get_task_by_gid(gid):
+    for task in task_dict.values():
+        if task.gid() == gid:
+            return task
+    return None
 
 
 # =========================
@@ -106,8 +114,8 @@ async def get_specific_tasks(status, user_id):
 def get_readable_file_size(size):
     if not size:
         return "0B"
-    i = 0
     size = float(size)
+    i = 0
     while size >= 1024 and i < len(SIZE_UNITS) - 1:
         size /= 1024
         i += 1
@@ -149,6 +157,7 @@ def get_progress_bar_string(pct):
 # =========================
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
     from ..telegram_helper.bot_commands import BotCommands
+
     msg = ""
     buttons = ButtonMaker()
 
@@ -178,20 +187,13 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             f"│   ( {get_readable_time(elapsed)} )\n"
             f"│\n"
             f"├ 🛠 <b>Engine</b> : {task.engine}\n"
-            f"├ 📥 <b>In Mode</b> : {task.listener.mode[0]}\n"
-            f"├ 📤 <b>Out Mode</b> : {task.listener.mode[1]}\n"
-            f"├ 👤 <b>User</b> : WORK RELATED MESSAGE\n"
-            f"├ 🆔 <b>ID</b> : {task.listener.message.from_user.id}\n"
-            f"├ 🔗 <b>Source</b> : Link\n"
+            f"├ 👤 <b>User</b> : {task.listener.message.from_user.id}\n"
             f"┖ ⛔ <b>Stop</b> : /{BotCommands.CancelTaskCommand[1]}_{task.gid()}\n\n"
         )
 
     if not msg:
         msg = "❌ <b>No Active Tasks</b>\n\n"
 
-    # =========================
-    # BOT STATS
-    # =========================
     msg += (
         "🤖 <b><u>Bot Stats</u></b>\n"
         f"│ 🖥 <b>CPU</b>: {cpu_percent()}%\n"
@@ -200,9 +202,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         f"┖ ⏰ <b>UP Time</b>: {get_readable_time(time() - bot_start_time)}\n"
     )
 
-    # =========================
-    # BUTTONS
-    # =========================
     buttons.data_button("♻️ Refresh", f"status {sid} ref", position="header")
 
     if total > STATUS_LIMIT:
