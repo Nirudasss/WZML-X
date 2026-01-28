@@ -3,7 +3,6 @@ from html import escape
 from re import findall
 from time import time
 from psutil import cpu_percent, disk_usage, virtual_memory
-from ...ext_utils.status_utils import speed_string_to_bytes
 
 from ... import DOWNLOAD_DIR, bot_start_time, task_dict, task_dict_lock
 from ...core.config_manager import Config
@@ -181,6 +180,22 @@ async def get_readable_message(sid, is_user, page_no=1, status="All"):
 
     msg = ""
     buttons = ButtonMaker()
+
+def speed_string_to_bytes(speed_str):
+    if not speed_str:
+        return 0
+    try:
+        speed_str = speed_str.lower().strip()
+        value = float(speed_str.split()[0])
+        if "kb" in speed_str:
+            return value * 1024
+        elif "mb" in speed_str:
+            return value * 1024 ** 2
+        elif "gb" in speed_str:
+            return value * 1024 ** 3
+    except:
+        return 0
+    return 0    
 
     async with task_dict_lock:
         tasks = await get_specific_tasks(status, sid if is_user else None)
