@@ -169,7 +169,7 @@ def time_to_seconds(time_str):
     }
 
     total = 0
-    for value, unit in findall(r"(\d+)([dhms])", time_str)
+    for value, unit in findall(r"(\d+)([dhms])", time_str):
         total += int(value) * units.get(unit, 0)
 
     return total
