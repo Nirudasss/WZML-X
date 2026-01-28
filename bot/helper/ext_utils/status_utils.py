@@ -42,6 +42,8 @@ def get_task_by_gid(gid):
             return task
     return None
 
+def get_all_tasks():
+    return list(task_dict.values())
 
 # =========================
 # STATUS DEFINITIONS
