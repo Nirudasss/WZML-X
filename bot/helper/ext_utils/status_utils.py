@@ -15,7 +15,6 @@ from ... import (
 )
 from ...core.config_manager import Config
 from ..telegram_helper.button_build import ButtonMaker
-from ..telegram_helper.bot_commands import BotCommands
 
 
 # =========================
@@ -149,6 +148,7 @@ def get_progress_bar_string(pct):
 # MAIN STATUS FUNCTION
 # =========================
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
+    from ..telegram_helper.bot_commands import BotCommands
     msg = ""
     buttons = ButtonMaker()
 
