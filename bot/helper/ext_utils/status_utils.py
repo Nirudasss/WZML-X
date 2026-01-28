@@ -1,5 +1,3 @@
-# bot/helper/ext_utils/status_utils.py
-
 from asyncio import gather, iscoroutinefunction
 from html import escape
 from re import findall
