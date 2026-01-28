@@ -22,7 +22,7 @@ from ..telegram_helper.bot_commands import BotCommands
 # LOCKED POWERED HEADER
 # =========================
 POWERED_BY_HEADER = (
-    "<b>🚀 <a href='https://t.me/EliteBotz'>POWERED BY ELITEBOTZ</a></b>\n"
+    "<b>🚀 <a href='https://t.me/Radha_Rani_Backup'>POWERED BY ELITEBOTZ</a></b>\n"
     "<b>━━━━━━━━━━━━━━━━━━━━</b>\n\n"
 )
 
