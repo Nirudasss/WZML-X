@@ -194,17 +194,29 @@ def speed_string_to_bytes(size_text: str):
     return 0
 
 
-def get_progress_bar_string(pct):
-    try:
-        pct = float(str(pct).replace("%", "").strip())
-    except Exception:
-        pct = 0.0
-
-    pct = max(0.0, min(pct, 100.0))
+def get_colorful_progress_bar(pct: float) -> str:
+    """
+    Return a colorful progress bar using emojis based on percentage.
+    """
+    pct = max(0.0, min(100.0, float(pct)))  # Clamp to 0-100%
     total_blocks = 12
-    filled_blocks = int((pct / 100) * total_blocks)
-    return f"[{'⬢' * filled_blocks}{'⬡' * (total_blocks - filled_blocks)}]"
 
+    # Determine number of filled blocks
+    filled_blocks = int((pct / 100) * total_blocks)
+
+    # Choose colors based on progress
+    colors = ["🟥", "🟧", "🟨", "🟩"]  # Red -> Orange -> Yellow -> Green
+    if pct <= 25:
+        block = colors[0]
+    elif pct <= 50:
+        block = colors[1]
+    elif pct <= 75:
+        block = colors[2]
+    else:
+        block = colors[3]
+
+    bar = block * filled_blocks + "⬜" * (total_blocks - filled_blocks)
+    return f"[{bar}] {pct:.1f}%"
 
 def premium_header():
     return (
