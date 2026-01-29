@@ -227,7 +227,7 @@ def status_icon(status):
         "FFmpeg": "🎬",
     }.get(status, "⚙️")
 
-  async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
+async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
     msg = premium_header()
     button = None
 
@@ -254,16 +254,22 @@ def status_icon(status):
         )
 
         elapsed = time() - task.listener.message.date.timestamp()
+        eta_seconds = get_raw_time(task.eta())
+        total_time = elapsed + eta_seconds
+        remaining_time = max(total_time - elapsed, 0)
+
+        user = task.listener.message.from_user
+        source = "Magnet" if task.listener.is_torrent else "Link"
 
         msg += (
             f"📊 <b>{escape(task.name())}</b>\n"
             f"{get_progress_bar_string(task.progress())}\n"
-            f"┣ <b>Process</b> : {task.progress()}%\n"
-            f"┣ <b>Processed</b> : {task.processed_bytes()} of {task.size()}\n"
-            f"┣ <b>Status</b> : {status_icon(tstatus)} {tstatus}\n"
-            f"┣ <b>Speed</b> : {task.speed()}\n"
-            f"┣ <b>Time</b> : {task.eta()} of "
-            f"{get_readable_time(elapsed + get_raw_time(task.eta()))}\n"
+            f"┣ 🔄 <b>Process</b> : {task.progress()}%\n"
+            f"┣ 📦 <b>Processed</b> : {task.processed_bytes()} of {task.size()}\n"
+            f"┣ 📌 <b>Status</b> : {status_icon(tstatus)} {tstatus}\n"
+            f"┣ ⚡ <b>Speed</b> : {task.speed()}\n"
+            f"┣ ⏱️ <b>Time</b> : {task.eta()} of {get_readable_time(total_time)} "
+            f"({get_readable_time(remaining_time)})\n"
         )
 
         if tstatus == MirrorStatus.STATUS_DOWNLOAD and (
@@ -271,16 +277,19 @@ def status_icon(status):
         ):
             try:
                 msg += (
-                    f"┣ <b>Seeders</b> : {task.seeders_num()} | "
+                    f"┣ 🌱 <b>Seeders</b> : {task.seeders_num()} | "
                     f"<b>Leechers</b> : {task.leechers_num()}\n"
                 )
             except Exception:
                 pass
 
         msg += (
-            f"┣ <b>Engine</b> : {task.engine}\n"
-            f"┣ <b>In Mode</b> : {task.listener.mode[0]}\n"
-            f"┣ <b>Out Mode</b> : {task.listener.mode[1]}\n"
+            f"┣ 🛠️ <b>Engine</b> : {task.engine}\n"
+            f"┣ 📥 <b>In Mode</b> : {task.listener.mode[0]}\n"
+            f"┣ 📤 <b>Out Mode</b> : {task.listener.mode[1]}\n"
+            f"┣ 👤 <b>User</b> : {escape(user.first_name)}\n"
+            f"┣ 🆔 <b>ID</b> : {user.id}\n"
+            f"┣ 🔗 <b>Source</b> : {source}\n"
         )
 
         from ..telegram_helper.bot_commands import BotCommands
@@ -295,11 +304,11 @@ def status_icon(status):
     # ---------- BOT STATS ----------
     msg += (
         "⌬ <b><u>Bot Stats</u></b>\n"
-        f"┣ CPU : {cpu_percent()}%\n"
-        f"┣ RAM : {virtual_memory().percent}%\n"
-        f"┣ Free : {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)} "
+        f"┣ 🖥️ CPU : {cpu_percent()}%\n"
+        f"┣ 💾 RAM : {virtual_memory().percent}%\n"
+        f"┣ 📂 Free : {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)} "
         f"[{round(100 - disk_usage(DOWNLOAD_DIR).percent, 1)}%]\n"
-        f"┗ Uptime : {get_readable_time(time() - bot_start_time)}\n"
+        f"┗ ⏳ Uptime : {get_readable_time(time() - bot_start_time)}\n"
     )
 
     # ---------- BUTTONS ----------
@@ -320,4 +329,4 @@ def status_icon(status):
     buttons.data_button("♻️ Refresh", f"status {sid} ref", position="header")
     button = buttons.build_menu(8)
 
-    return msg, button  
+    return msg, button
