@@ -194,16 +194,27 @@ def speed_string_to_bytes(size_text: str):
     return 0
 
 
-def get_progress_bar_string(pct: float) -> str:
+def get_progress_bar_string(pct) -> str:
     """
     Return a colorful progress bar using emojis based on percentage.
+    Accepts float, int, or string like '11.92%'
     """
-    pct = max(0.0, min(100.0, float(pct)))  # Clamp to 0-100%
+    # If pct is a string with '%', remove it
+    if isinstance(pct, str):
+        pct = pct.replace("%", "").strip()
+
+    try:
+        pct = float(pct)  # Convert to float
+    except ValueError:
+        pct = 0.0
+
+    pct = max(0.0, min(100.0, pct))  # Clamp to 0-100%
     total_blocks = 12
 
     filled_blocks = int((pct / 100) * total_blocks)
 
-    colors = ["🟥", "🟧", "🟨", "🟩"]
+    # Choose colors based on progress
+    colors = ["🟥", "🟧", "🟨", "🟩"]  # Red -> Orange -> Yellow -> Green
     if pct <= 25:
         block = colors[0]
     elif pct <= 50:
