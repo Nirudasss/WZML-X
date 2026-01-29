@@ -196,40 +196,33 @@ def speed_string_to_bytes(size_text: str):
 
 def get_progress_bar_string(pct) -> str:
     """
-    Return a colorful progress bar using emojis based on percentage.
+    Return Telegram-style solid block progress bar.
     Accepts float, int, or string like '11.92%'
     """
-    # If pct is a string with '%', remove it
+
+    # Handle string percentage
     if isinstance(pct, str):
         pct = pct.replace("%", "").strip()
 
     try:
-        pct = float(pct)  # Convert to float
+        pct = float(pct)
     except ValueError:
         pct = 0.0
 
-    pct = max(0.0, min(100.0, pct))  # Clamp to 0-100%
-    total_blocks = 12
+    pct = max(0.0, min(100.0, pct))  # Clamp 0–100
 
+    total_blocks = 10  # matches screenshot style
     filled_blocks = int((pct / 100) * total_blocks)
 
-    # Choose colors based on progress
-    colors = ["🟥", "🟧", "🟨", "🟩"]  # Red -> Orange -> Yellow -> Green
-    if pct <= 25:
-        block = colors[0]
-    elif pct <= 50:
-        block = colors[1]
-    elif pct <= 75:
-        block = colors[2]
-    else:
-        block = colors[3]
+    filled = "⬢" * filled_blocks
+    empty = "⬡" * (total_blocks - filled_blocks)
 
-    bar = block * filled_blocks + "⬜" * (total_blocks - filled_blocks)
+    bar = filled + empty
+
     return f"[{bar}] {pct:.1f}%"
     
 def premium_header():
     return (
-        "<b>__Powered By</b>\n"
         "<a href='https://t.me/Radha_Rani_Backup'><b>POWERED BY ELITEBOTZ</b></a>\n\n"
     )
 
