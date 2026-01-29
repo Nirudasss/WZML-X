@@ -194,18 +194,16 @@ def speed_string_to_bytes(size_text: str):
     return 0
 
 
-def get_colorful_progress_bar(pct: float) -> str:
+def get_progress_bar_string(pct: float) -> str:
     """
     Return a colorful progress bar using emojis based on percentage.
     """
     pct = max(0.0, min(100.0, float(pct)))  # Clamp to 0-100%
     total_blocks = 12
 
-    # Determine number of filled blocks
     filled_blocks = int((pct / 100) * total_blocks)
 
-    # Choose colors based on progress
-    colors = ["🟥", "🟧", "🟨", "🟩"]  # Red -> Orange -> Yellow -> Green
+    colors = ["🟥", "🟧", "🟨", "🟩"]
     if pct <= 25:
         block = colors[0]
     elif pct <= 50:
@@ -217,13 +215,12 @@ def get_colorful_progress_bar(pct: float) -> str:
 
     bar = block * filled_blocks + "⬜" * (total_blocks - filled_blocks)
     return f"[{bar}] {pct:.1f}%"
-
+    
 def premium_header():
     return (
         "<b>__Powered By</b>\n"
         "<a href='https://t.me/Radha_Rani_Backup'><b>POWERED BY ELITEBOTZ</b></a>\n\n"
     )
-
 
 def status_icon(status):
     return {
