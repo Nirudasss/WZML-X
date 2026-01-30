@@ -283,7 +283,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         msg += (
             f"📊 <b>{escape(task.name())}</b>\n"
             f"{get_progress_bar_string(task.progress())}\n"
-            f"┣ 🔄 <b>Process</b> : {task.progress()}%\n"
             f"┣ 📦 <b>Processed</b> : {task.processed_bytes()} of {task.size()}\n"
             f"┣ 📌 <b>Status</b> : {status_icon(tstatus)} {tstatus}\n"
             f"┣ ⚡ <b>Speed</b> : {task.speed()}\n"
