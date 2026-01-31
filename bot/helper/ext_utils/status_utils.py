@@ -193,10 +193,9 @@ def speed_string_to_bytes(size_text: str):
         return float(size_text.split("b")[0])
     return 0
 
-
 def get_progress_bar_string(pct) -> str:
     """
-    Return Telegram-style solid block progress bar.
+    Return Telegram-style solid block progress bar using ▰ and ▱.
     Accepts float, int, or string like '11.92%'
     """
 
@@ -211,11 +210,11 @@ def get_progress_bar_string(pct) -> str:
 
     pct = max(0.0, min(100.0, pct))  # Clamp 0–100
 
-    total_blocks = 10  # matches screenshot style
+    total_blocks = 10  # 10-block progress bar
     filled_blocks = int((pct / 100) * total_blocks)
 
-    filled = "⬢" * filled_blocks
-    empty = "⬡" * (total_blocks - filled_blocks)
+    filled = "▰" * filled_blocks
+    empty = "▱" * (total_blocks - filled_blocks)
 
     bar = filled + empty
 
